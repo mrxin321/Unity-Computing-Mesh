@@ -1,0 +1,52 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#include "UnityCG.cginc"
+struct Bounds{
+    float3 extent;
+    float4x4 ObjectToWorld;
+};
+struct Transform{
+    float4x4 ObjectToWorld;
+    float4x4 MVP;
+};
+inline float PlaneTest(float4 plane, Bounds bound){
+    float3 right = float3(bound.ObjectToWorld._m00, bound.ObjectToWorld._m10, bound.ObjectToWorld._m20);
+    float3 up = float3(bound.ObjectToWorld._m01, bound.ObjectToWorld._m11, bound.ObjectToWorld._m21);
+    float3 forward = float3(bound.ObjectToWorld._m02, bound.ObjectToWorld._m12, bound.ObjectToWorld._m22);
+    float3 position = float3(bound.ObjectToWorld._m03, bound.ObjectToWorld._m13, bound.ObjectToWorld._m23);
+    float r = dot(position, plane.xyz); 
+    float3 absNormal = float3(abs(dot(plane.xyz, right)), abs(dot(plane.xyz, up)), abs(dot(plane.xyz, forward)));
+    float f = dot(absNormal, bound.extent);
+    return ((r - f) < -plane.w) ? 1 : 0;
+}
+#define PLANECOUNT 6
+//Culling Plane
+float4 planes[PLANECOUNT];
+//Bounds Input
+RWStructuredBuffer<Bounds> allBounds;
+
+RWStructuredBuffer<uint> sizeBuffer;//Size should be 1
+
+RWStructuredBuffer<Transform> Transforms;   //Size should be as same as allBounds
+uint _Count;
+float4x4 _VPMatrix;
+[numthreads(128, 1, 1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x > _Count)
+    {
+        return;
+    }
+    float result = 1;
+    for(int y = 0; y < PLANECOUNT; ++y){
+        result *= PlaneTest(planes[y], allBounds[id.x]);
+    }
+    if(result > 0.5){
+        int currentIndex = 0;
+        InterlockedAdd(sizeBuffer[0], 1, /*out*/currentIndex);
+        float4x4 ObjectToWorld = allBounds[id.x].ObjectToWorld;
+        Transforms[currentIndex].ObjectToWorld = ObjectToWorld;
+        Transforms[currentIndex].MVP = mul(_VPMatrix, ObjectToWorld);
+    }
+}
+

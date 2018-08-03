@@ -1,0 +1,51 @@
+﻿uint _Count;
+float4 _CameraPos;
+struct TransformInfo
+{
+	uint lodLevel;
+	float3 position;
+	float4 lodSize;
+};
+
+struct UpdateInfo
+{
+	uint objIndex;
+	float3 position;
+};
+
+#include "UnityCG.cginc"
+#pragma kernel Calculate																																				//Calculate Kernel
+RWStructuredBuffer<TransformInfo> lodGroupBuffer;
+RWStructuredBuffer<uint> sizeBuffer;
+RWStructuredBuffer<uint2> changedBuffer;	//x: objIndex y: newLodSize
+[numthreads(128,1,1)]
+void Calculate (uint3 id : SV_DispatchThreadID)
+{
+	if(id.x > _Count)
+		return;
+	TransformInfo trans = lodGroupBuffer[id.x];
+	float dist = distance(trans.position, _CameraPos.xyz);
+	float4 lodLevel = dist > trans.lodSize;
+	lodLevel.yzw -= lodLevel.xyz; // x to w far to near
+	float4 level = float4(4,3,2,1) * lodLevel;
+	uint currentLodLevel = (uint)dot(level, 1);
+	if(currentLodLevel != trans.lodLevel)
+	{
+		uint currentSize;
+		InterlockedAdd(sizeBuffer[0], 1, /*out*/ currentSize);
+		uint2 changedResult = uint2(id.x, currentLodLevel);
+		changedBuffer[currentSize] = changedResult;
+		lodGroupBuffer[id.x].lodLevel = currentLodLevel;
+	}
+}
+
+#pragma kernel Move
+RWStructuredBuffer<UpdateInfo> newPositionBuffer;
+[numthreads(16,1,1)]
+void Move (uint3 id : SV_DispatchThreadID)
+{
+	if(id.x > _Count)
+		return;
+	UpdateInfo info = newPositionBuffer[id.x];
+	lodGroupBuffer[info.objIndex].position = info.position;
+}

@@ -1,0 +1,21 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+#include "UnityCG.cginc"
+    struct Matrix
+    {
+        float4x4 MTW;
+        float4x4 MVP;
+        float4x4 MV;
+    };
+RWStructuredBuffer<Matrix> _Matrices;
+float4x4 _ViewMatrix;
+float4x4 _VPMatrix;
+
+[numthreads(1024,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	Matrix m = _Matrices[id.x];
+	m.MVP = mul(_VPMatrix, m.MTW);
+	m.MV = mul(_ViewMatrix, m.MTW);
+	_Matrices[id.x] = m;
+}
