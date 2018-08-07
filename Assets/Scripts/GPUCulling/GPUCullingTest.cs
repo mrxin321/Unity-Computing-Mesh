@@ -52,12 +52,12 @@ namespace GPUPipeline.Culling
             /// </summary>
             [System.NonSerialized]
             public int count;
+            public ComputeBuffer vertexBuffer;
         }
         [System.Serializable]
         public struct ProceduralInstance
         {
             public Material proceduralMaterial;
-            public ComputeBuffer vertexBuffer;
             public CommandBuffer geometryCommandBuffer;
             public CommandBuffer motionVectorsCommandBuffer;
         }
@@ -150,13 +150,13 @@ namespace GPUPipeline.Culling
             int instanceCount = (int)GetCullingBufferResult(ref cullingBuffers);
             if (instanceCount == 0) return;
             procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, procedural.vertexBuffer);
+            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
             procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.lastFrameMatrices, cullingBuffers.lastFrameMatricesBuffer);
             procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, procedural.vertexBuffer);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 0, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 1, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
-            procedural.motionVectorsCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 3, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
+            procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
+            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 0, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
+            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 1, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
+            procedural.motionVectorsCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 3, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
         }
 
         public static void DrawNoOcclusion(ref CullingBuffers cullingBuffers, ref ProceduralInstance procedural)
@@ -164,12 +164,12 @@ namespace GPUPipeline.Culling
             int instanceCount = (int)GetCullingBufferResult(ref cullingBuffers);
             if (instanceCount == 0) return;
             procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, procedural.vertexBuffer);
+            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
             procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.lastFrameMatrices, cullingBuffers.lastFrameMatricesBuffer);
             procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, procedural.vertexBuffer);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 2, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
-            procedural.motionVectorsCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 3, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
+            procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
+            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 2, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
+            procedural.motionVectorsCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 3, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
 
         }
 
@@ -178,9 +178,9 @@ namespace GPUPipeline.Culling
             int instanceCount = (int)GetCullingBufferResult(ref cullingBuffers);
             if (instanceCount == 0) return;
             procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, procedural.vertexBuffer);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 0, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 1, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
+            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
+            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 0, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
+            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 1, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
         }
 
         public static void DrawNoMotionVectorsNoOcclusion(ref CullingBuffers cullingBuffers, ref ProceduralInstance procedural)
@@ -188,8 +188,8 @@ namespace GPUPipeline.Culling
             int instanceCount = (int)GetCullingBufferResult(ref cullingBuffers);
             if (instanceCount == 0) return;
             procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, procedural.vertexBuffer);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 2, MeshTopology.Triangles, procedural.vertexBuffer.count, instanceCount);
+            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
+            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 2, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
         }
 
         public static void ClearBuffer(ref ProceduralInstance procedural)
@@ -200,7 +200,7 @@ namespace GPUPipeline.Culling
             procedural.motionVectorsCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.MotionVectors, BuiltinRenderTextureType.CameraTarget);
         }
 
-        private static void InitBuffers(ref CullingBuffers buffers, Transform[] transforms)
+        private static void InitBuffers(ref CullingBuffers buffers, Transform[] transforms, Mesh mesh)
         {
             buffers.sizeBuffer = new ComputeBuffer(1, INTSIZE);
             buffers.allBoundBuffer = new ComputeBuffer(transforms.Length, BOUNDSIZE);
@@ -216,19 +216,7 @@ namespace GPUPipeline.Culling
                 allBounds[i].localToWorldMatrix = transforms[i].localToWorldMatrix;
             }
             buffers.allBoundBuffer.SetData(allBounds);
-        }
 
-        private static void SetLastFrameMatrix(ref CullingBuffers cullingBuffers)
-        {
-            cullingBuffers.cullingShader.SetBuffer(cullingBuffers.lastMatricesKernel, ShaderIDs.allBounds, cullingBuffers.allBoundBuffer);
-            cullingBuffers.cullingShader.SetBuffer(cullingBuffers.lastMatricesKernel, ShaderIDs.lastFrameMatrices, cullingBuffers.lastFrameMatricesBuffer);
-            ComputeShaderUtility.Dispatch(cullingBuffers.cullingShader, cullingBuffers.lastMatricesKernel, cullingBuffers.lastFrameMatricesBuffer.count, THREADGROUPCOUNT);
-        }
-
-        private static void InitProceduralInstance(ref ProceduralInstance procedural, Mesh mesh)
-        {
-            procedural.geometryCommandBuffer = new CommandBuffer();
-            procedural.motionVectorsCommandBuffer = new CommandBuffer();
             Vector3[] allVertex = mesh.vertices;
             int[] allIndices = mesh.triangles;
             Vector2[] allUVs = mesh.uv;
@@ -245,8 +233,21 @@ namespace GPUPipeline.Culling
                 p.tangent = tangents[index];
                 points[i] = p;
             }
-            procedural.vertexBuffer = new ComputeBuffer(points.Length, VERTEXSIZE);
-            procedural.vertexBuffer.SetData(points);
+            buffers.vertexBuffer = new ComputeBuffer(points.Length, VERTEXSIZE);
+            buffers.vertexBuffer.SetData(points);
+        }
+
+        private static void SetLastFrameMatrix(ref CullingBuffers cullingBuffers)
+        {
+            cullingBuffers.cullingShader.SetBuffer(cullingBuffers.lastMatricesKernel, ShaderIDs.allBounds, cullingBuffers.allBoundBuffer);
+            cullingBuffers.cullingShader.SetBuffer(cullingBuffers.lastMatricesKernel, ShaderIDs.lastFrameMatrices, cullingBuffers.lastFrameMatricesBuffer);
+            ComputeShaderUtility.Dispatch(cullingBuffers.cullingShader, cullingBuffers.lastMatricesKernel, cullingBuffers.lastFrameMatricesBuffer.count, THREADGROUPCOUNT);
+        }
+
+        private static void InitProceduralInstance(ref ProceduralInstance procedural)
+        {
+            procedural.geometryCommandBuffer = new CommandBuffer();
+            procedural.motionVectorsCommandBuffer = new CommandBuffer();
         }
 
         public static void Dispose(ref CullingBuffers buffers, ref ProceduralInstance procedural)
@@ -254,7 +255,7 @@ namespace GPUPipeline.Culling
             buffers.allBoundBuffer.Dispose();
             buffers.resultBuffer.Dispose();
             buffers.sizeBuffer.Dispose();
-            procedural.vertexBuffer.Dispose();
+            buffers.vertexBuffer.Dispose();
             procedural.geometryCommandBuffer.Dispose();
             procedural.motionVectorsCommandBuffer.Dispose();
             buffers.lastFrameMatricesBuffer.Dispose();
@@ -275,8 +276,8 @@ namespace GPUPipeline.Culling
         {
             currentCamera = GetComponent<Camera>();
             currentCamera.depthTextureMode |= DepthTextureMode.MotionVectors;
-            InitBuffers(ref buffers, transforms);
-            InitProceduralInstance(ref procedural, transforms[0].GetComponent<MeshFilter>().sharedMesh);
+            InitBuffers(ref buffers, transforms, transforms[0].GetComponent<MeshFilter>().sharedMesh);
+            InitProceduralInstance(ref procedural);
         }
 
         private void OnEnable()
