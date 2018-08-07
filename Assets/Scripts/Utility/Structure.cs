@@ -26,60 +26,6 @@ namespace GPUPipeline.Procedural
         public ProceduralGeometry parent;
     }
 }
-namespace GPUPipeline.Culling
-{
-    [System.Serializable]
-    public struct CullingBuffers
-    {
-        /// <summary>
-        /// All Boundings
-        /// </summary>
-        public ComputeBuffer allBoundBuffer;
-        /// <summary>
-        /// Buffer of size, size should be 1
-        /// </summary>
-        public ComputeBuffer sizeBuffer;
-        /// <summary>
-        /// Culling Results with MVP and ObjectToWorld Matrix
-        /// </summary>
-        public ComputeBuffer resultBuffer;
-        /// <summary>
-        /// 
-        /// </summary>
-        public ComputeShader cullingShader;
-        /// <summary>
-        /// Computer Shader Target Kernal
-        /// </summary>
-        [System.NonSerialized]
-        public int kernal;
-        /// <summary>
-        /// Culling Target Count
-        /// </summary>
-        [System.NonSerialized]
-        public int count;
-    }
-    [System.Serializable]
-    public struct ProceduralInstance
-    {
-        public Material proceduralMaterial;
-        public Material motionVectorMaterial;
-        public ComputeBuffer vertexBuffer;
-        public CommandBuffer geometryCommandBuffer;
-        public CommandBuffer motionVectorsCommandBuffer;
-    }
-    public struct Point
-    {
-        public Vector3 vertex;  //12
-        public Vector4 tangent; //16
-        public Vector3 normal;  //12
-        public Vector2 texcoord;    //8
-    }; //48
-    public struct Bounds
-    {
-        public Vector3 extent;  //12
-        public Matrix4x4 localToWorldMatrix;    //64
-    }; //76
-}
 namespace GPUPipeline.LOD
 {
     public struct TransformInfo

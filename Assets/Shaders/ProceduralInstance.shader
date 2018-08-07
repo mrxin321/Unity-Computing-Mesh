@@ -49,11 +49,12 @@ struct Point{
 struct Transform{ 
   float4x4 ObjectToWorld;
   float4x4 MVP;
+  uint index;
 };
 
 StructuredBuffer<Point> VertexBuffer;
 StructuredBuffer<Transform> Transforms;
-
+StructuredBuffer<float4x4> lastFrameMatrices;
     float4 _SpecularColor;
     float4 _EmissionColor;
 		float _NormalScale;
@@ -121,48 +122,9 @@ float4 ProceduralStandardSpecular_Deferred (SurfaceOutputStandardSpecular s, flo
     return emission;
 }
 
-
-
-ENDCG
-
-  Pass
-{
-  Blend zero one
-  ZTest less
-  CGPROGRAM
-// compile directives
-#pragma vertex vert_surf
-#pragma fragment frag_surf
-
-float4 vert_surf (uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID) : SV_POSITION{
-  float4 vertex = float4(VertexBuffer[vertexID].vertex, 1);
-  return mul(Transforms[instanceID].MVP, vertex);
-}                                                                                                                                                
-
-void frag_surf (
-) {
-
-}
-ENDCG
-}
-
-Pass {
-stencil{
-  Ref 255
-  comp always
-  pass replace
-}
-ZWrite off
-CGPROGRAM
-// compile directives
-#pragma vertex vert_surf
-#pragma fragment frag_surf
-#pragma exclude_renderers nomrt
-#define UNITY_PASS_DEFERRED
-
 struct v2f_surf {
   UNITY_POSITION(pos);
-  float2 pack0 : TEXCOORD0; // _MainTex
+  float2 pack0 : TEXCOORD0; 
   float3 worldPos : TEXCOORD1;
   float3 worldTangent : TEXCOORD2;
   float3 worldBinormal : TEXCOORD3;
@@ -171,7 +133,7 @@ struct v2f_surf {
 };
 float4 _MainTex_ST;
 
-// vertex shader
+
 v2f_surf vert_surf (uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID) {
   Point v = VertexBuffer[vertexID];
   v2f_surf o;
@@ -212,8 +174,98 @@ void frag_surf (v2f_surf IN,
   o.Normal = normalize(mul(o.Normal, wdMatrix));
   outEmission = ProceduralStandardSpecular_Deferred (o, worldViewDir, outGBuffer0, outGBuffer1, outGBuffer2); //GI neccessary here!
 }
+
+ENDCG
+//Early Z Write Pass
+//Should Only avaiable when there are a lot of occlusion in scene
+//When enable this pass, also enable "ZWrite Off" in the next pass
+Pass
+{
+  ZTest Less
+  Blend zero one
+  CGPROGRAM
+  #pragma vertex vert
+  #pragma fragment frag
+
+  inline float4 vert(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID) : SV_POSITION
+  {
+    return mul(Transforms[instanceID].MVP, float4(VertexBuffer[vertexID].vertex,1));
+  }
+
+  inline void frag(){}
+  ENDCG
+
+}
+
+
+//Pass 1 Occluded deferred
+Pass {
+stencil{
+  Ref 255
+  comp always
+  pass replace
+}
+ZWrite off
+CGPROGRAM
+#pragma vertex vert_surf
+#pragma fragment frag_surf
+#pragma exclude_renderers nomrt
+#define UNITY_PASS_DEFERRED
 ENDCG
 }
+//Pass 2 UnOccluded deferred
+Pass {
+stencil{
+  Ref 255
+  comp always
+  pass replace
+}
+ZTest Less
+CGPROGRAM
+
+#pragma vertex vert_surf
+#pragma fragment frag_surf
+#pragma exclude_renderers nomrt
+#define UNITY_PASS_DEFERRED
+ENDCG
+}
+
+Pass {
+ZWrite off
+
+CGPROGRAM
+// compile directives
+#pragma vertex vert
+#pragma fragment frag
+// vertex shader
+struct v2f_motionVector{
+  float4 pos : SV_POSITION;
+  float4 lastPos : TEXCOORD0;
+  float4 currentPos : TEXCOORD1;
+};
+float4x4 LAST_VP_MATRIX;
+v2f_motionVector vert (uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID){
+  Transform curt = Transforms[instanceID];
+  v2f_motionVector o;
+  float4 vertex = float4(VertexBuffer[vertexID].vertex, 1);
+  o.pos = mul(curt.MVP, vertex);
+  float4 worldPos = mul(lastFrameMatrices[curt.index], vertex);
+  o.currentPos = o.pos;
+  o.lastPos = mul(LAST_VP_MATRIX, worldPos);
+  return o;
+}
+
+// fragment shader
+float2 frag (v2f_motionVector i) : SV_Target {
+    float4 hPos = float4(i.currentPos.xy, i.lastPos.xy) / float4(i.currentPos.ww, i.lastPos.ww);
+    float4 vPos = hPos * 0.5 + 0.5;
+    #if UNITY_UV_STARTS_AT_TOP
+    vPos.yw = 1 - vPos.yw;
+    #endif
+    return vPos.xy - vPos.zw;
+}
+ENDCG
+  }
 
 
 }

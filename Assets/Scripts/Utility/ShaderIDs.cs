@@ -16,4 +16,6 @@ public static partial class ShaderIDs
     public static int changedBuffer = Shader.PropertyToID("changedBuffer");
     public static int newPositionBuffer = Shader.PropertyToID("newPositionBuffer");
     public static int _CameraPos = Shader.PropertyToID("_CameraPos");
+    public static int lastFrameMatrices = Shader.PropertyToID("lastFrameMatrices");
+    public static int _CurrentTime = Shader.PropertyToID("_CurrentTime");
 }
