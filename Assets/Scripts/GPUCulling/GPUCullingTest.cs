@@ -249,6 +249,17 @@ namespace GPUPipeline.Culling
             procedural.vertexBuffer.SetData(points);
         }
 
+        public static void Dispose(ref CullingBuffers buffers, ref ProceduralInstance procedural)
+        {
+            buffers.allBoundBuffer.Dispose();
+            buffers.resultBuffer.Dispose();
+            buffers.sizeBuffer.Dispose();
+            procedural.vertexBuffer.Dispose();
+            procedural.geometryCommandBuffer.Dispose();
+            procedural.motionVectorsCommandBuffer.Dispose();
+            buffers.lastFrameMatricesBuffer.Dispose();
+        }
+
         #endregion
         public Transform[] transforms;
         public CullingBuffers buffers;
@@ -296,12 +307,7 @@ namespace GPUPipeline.Culling
 
         private void OnDestroy()
         {
-            buffers.allBoundBuffer.Dispose();
-            buffers.resultBuffer.Dispose();
-            buffers.sizeBuffer.Dispose();
-            procedural.vertexBuffer.Dispose();
-            procedural.geometryCommandBuffer.Dispose();
-            procedural.motionVectorsCommandBuffer.Dispose();
+            Dispose(ref buffers, ref procedural);
         }
 
         private void OnPreRender()
