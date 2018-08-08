@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Function;
 using UnityEngine.Rendering;
 namespace GPUPipeline.Culling
 {
@@ -269,8 +270,7 @@ namespace GPUPipeline.Culling
         private Matrix4x4 view;
         public bool useMotionVector;
         public bool useOcclusion;
-        private Action onPreRenderAction;
-        private Action drawAction;
+        private Function<CullingBuffers, ProceduralInstance> onPreRenderAction;
 
         private void Awake()
         {
@@ -287,16 +287,16 @@ namespace GPUPipeline.Culling
             {
                 currentCamera.AddCommandBuffer(CameraEvent.BeforeImageEffectsOpaque, procedural.motionVectorsCommandBuffer);
                 if (useOcclusion)
-                    onPreRenderAction = () => Draw(ref buffers, ref procedural);
+                    onPreRenderAction = Draw;
                 else
-                    onPreRenderAction = () => DrawNoOcclusion(ref buffers, ref procedural);
+                    onPreRenderAction = DrawNoOcclusion;
             }
             else
             {
                 if (useOcclusion)
-                    onPreRenderAction = () => DrawNoMotionVectors(ref buffers, ref procedural);
+                    onPreRenderAction = DrawNoMotionVectors;
                 else
-                    onPreRenderAction = () => DrawNoMotionVectorsNoOcclusion(ref buffers, ref procedural);
+                    onPreRenderAction = DrawNoMotionVectorsNoOcclusion;
             }
         }
 
@@ -322,7 +322,7 @@ namespace GPUPipeline.Culling
             view = Camera.current.worldToCameraMatrix;
             RunCulling(ref view, ref proj, ref rtProj, ref buffers);
             ClearBuffer(ref procedural);
-            onPreRenderAction();
+            onPreRenderAction(ref buffers, ref procedural);
         }
     }
 }
