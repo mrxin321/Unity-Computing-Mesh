@@ -1,4 +1,4 @@
-﻿namespace Function
+﻿namespace Functional
 {
     public delegate void Function();
     public delegate void Function<T>(ref T arg);
