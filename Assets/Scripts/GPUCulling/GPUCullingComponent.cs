@@ -58,12 +58,12 @@ namespace GPUPipeline.Culling
         public Vector3 normal;  //12
         public Vector2 texcoord;    //8
         public const int SIZE = 48;
-    }; //48
+    } //48
     public struct Bounds
     {
         public Vector3 extent;  //12
         public Matrix4x4 localToWorldMatrix;    //64
         public const int SIZE = 76;
-    }; //76
+    }//76
     #endregion
 }

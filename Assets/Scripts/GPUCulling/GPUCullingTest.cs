@@ -6,7 +6,7 @@ using Functional;
 using UnityEngine.Rendering;
 namespace GPUPipeline.Culling
 {
-    public class GPUCullingTest : MonoBehaviour
+    public class GPUCullingTest : PipeLine
     {
         public Transform[] transforms;
         public CullingBuffers buffers;
@@ -14,7 +14,6 @@ namespace GPUPipeline.Culling
         private Camera currentCamera;
         private Matrix4x4 view;
         public bool useMotionVector;
-        public bool useOcclusion;
         private Function<CullingBuffers, ProceduralInstance> onPreRenderAction;
 
         private void Awake()
@@ -25,32 +24,28 @@ namespace GPUPipeline.Culling
             PipelineSystem.InitProceduralInstance(ref procedural);
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             currentCamera.AddCommandBuffer(CameraEvent.AfterGBuffer, procedural.geometryCommandBuffer);
             if (useMotionVector)
             {
                 currentCamera.AddCommandBuffer(CameraEvent.BeforeImageEffectsOpaque, procedural.motionVectorsCommandBuffer);
-                if (useOcclusion)
-                    onPreRenderAction = PipelineSystem.Draw;
-                else
-                    onPreRenderAction = PipelineSystem.DrawNoOcclusion;
+                onPreRenderAction = PipelineSystem.Draw;
             }
             else
             {
-                if (useOcclusion)
-                    onPreRenderAction = PipelineSystem.DrawNoMotionVectors;
-                else
-                    onPreRenderAction = PipelineSystem.DrawNoMotionVectorsNoOcclusion;
+                onPreRenderAction = PipelineSystem.DrawNoMotionVectors;
+
             }
-            PipelineBase.onPreRenderEvents.Add(OnPreRenderEvent);
+            
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             currentCamera.RemoveCommandBuffer(CameraEvent.AfterGBuffer, procedural.geometryCommandBuffer);
             if (useMotionVector) currentCamera.RemoveCommandBuffer(CameraEvent.BeforeImageEffectsOpaque, procedural.motionVectorsCommandBuffer);
-            PipelineBase.onPreRenderEvents.Remove(OnPreRenderEvent);
         }
 
         private void OnDestroy()
@@ -58,14 +53,15 @@ namespace GPUPipeline.Culling
             PipelineSystem.Dispose(ref buffers, ref procedural);
         }
 
-        private void OnPreRenderEvent()
+        public override void OnPreRenderEvent()
         {
-            buffers.cullingShader.SetFloat(ShaderIDs._CurrentTime, Time.time * 5);
-            PipelineSystem.SetLastFrameMatrix(ref buffers);
-            PipelineSystem.SetCullingBuffer(ref buffers);
             Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, false);
             Matrix4x4 rtProj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
-            Shader.SetGlobalMatrix(ShaderIDs.LAST_VP_MATRIX, rtProj * view);
+            Matrix4x4 lastVP = rtProj * view;
+            buffers.cullingShader.SetFloat(ShaderIDs._CurrentTime, Time.time * 5);
+            Shader.SetGlobalMatrix(ShaderIDs.LAST_VP_MATRIX, lastVP);
+            PipelineSystem.SetLastFrameMatrix(ref buffers, ref lastVP);
+            PipelineSystem.SetCullingBuffer(ref buffers);
             view = Camera.current.worldToCameraMatrix;
             PipelineSystem.RunCulling(ref view, ref proj, ref rtProj, ref buffers);
             PipelineSystem.ClearBuffer(ref procedural);

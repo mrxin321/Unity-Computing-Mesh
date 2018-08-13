@@ -176,44 +176,8 @@ void frag_surf (v2f_surf IN,
 }
 
 ENDCG
-//Early Z Write Pass
-//Should Only avaiable when there are a lot of occlusion in scene
-//When enable this pass, also enable "ZWrite Off" in the next pass
-Pass
-{
-  ZTest Less
-  Blend zero one
-  CGPROGRAM
-  #pragma vertex vert
-  #pragma fragment frag
 
-  inline float4 vert(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID) : SV_POSITION
-  {
-    return mul(Transforms[instanceID].MVP, float4(VertexBuffer[vertexID].vertex,1));
-  }
-
-  inline void frag(){}
-  ENDCG
-
-}
-
-
-//Pass 1 Occluded deferred
-Pass {
-stencil{
-  Ref 255
-  comp always
-  pass replace
-}
-ZWrite off
-CGPROGRAM
-#pragma vertex vert_surf
-#pragma fragment frag_surf
-#pragma exclude_renderers nomrt
-#define UNITY_PASS_DEFERRED
-ENDCG
-}
-//Pass 2 UnOccluded deferred
+//Pass 0 deferred
 Pass {
 stencil{
   Ref 255
@@ -243,15 +207,13 @@ struct v2f_motionVector{
   float4 lastPos : TEXCOORD0;
   float4 currentPos : TEXCOORD1;
 };
-float4x4 LAST_VP_MATRIX;
 v2f_motionVector vert (uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID){
   Transform curt = Transforms[instanceID];
   v2f_motionVector o;
   float4 vertex = float4(VertexBuffer[vertexID].vertex, 1);
   o.pos = mul(curt.MVP, vertex);
-  float4 worldPos = mul(lastFrameMatrices[curt.index], vertex);
   o.currentPos = o.pos;
-  o.lastPos = mul(LAST_VP_MATRIX, worldPos);
+  o.lastPos = mul(lastFrameMatrices[curt.index], vertex);
   return o;
 }
 

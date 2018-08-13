@@ -94,21 +94,7 @@ namespace GPUPipeline.Culling
             procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
             procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
             procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 0, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 1, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
-            procedural.motionVectorsCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 3, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
-        }
-
-        public static void DrawNoOcclusion(ref CullingBuffers cullingBuffers, ref ProceduralInstance procedural)
-        {
-            int instanceCount = (int)GetCullingBufferResult(ref cullingBuffers);
-            if (instanceCount == 0) return;
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
-            procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.lastFrameMatrices, cullingBuffers.lastFrameMatricesBuffer);
-            procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.motionVectorsCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 2, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
-            procedural.motionVectorsCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 3, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
+            procedural.motionVectorsCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 1, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
 
         }
 
@@ -119,16 +105,6 @@ namespace GPUPipeline.Culling
             procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
             procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
             procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 0, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 1, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
-        }
-
-        public static void DrawNoMotionVectorsNoOcclusion(ref CullingBuffers cullingBuffers, ref ProceduralInstance procedural)
-        {
-            int instanceCount = (int)GetCullingBufferResult(ref cullingBuffers);
-            if (instanceCount == 0) return;
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.Transforms, cullingBuffers.resultBuffer);
-            procedural.geometryCommandBuffer.SetGlobalBuffer(ShaderIDs.VertexBuffer, cullingBuffers.vertexBuffer);
-            procedural.geometryCommandBuffer.DrawProcedural(Matrix4x4.identity, procedural.proceduralMaterial, 2, MeshTopology.Triangles, cullingBuffers.vertexBuffer.count, instanceCount);
         }
 
         public static void ClearBuffer(ref ProceduralInstance procedural)
@@ -176,8 +152,9 @@ namespace GPUPipeline.Culling
             buffers.vertexBuffer.SetData(points);
         }
 
-        public static void SetLastFrameMatrix(ref CullingBuffers cullingBuffers)
+        public static void SetLastFrameMatrix(ref CullingBuffers cullingBuffers, ref Matrix4x4 lastVP)
         {
+            cullingBuffers.cullingShader.SetMatrix(ShaderIDs.LAST_VP_MATRIX, lastVP);
             cullingBuffers.cullingShader.SetBuffer(cullingBuffers.lastMatricesKernel, ShaderIDs.allBounds, cullingBuffers.allBoundBuffer);
             cullingBuffers.cullingShader.SetBuffer(cullingBuffers.lastMatricesKernel, ShaderIDs.lastFrameMatrices, cullingBuffers.lastFrameMatricesBuffer);
             ComputeShaderUtility.Dispatch(cullingBuffers.cullingShader, cullingBuffers.lastMatricesKernel, cullingBuffers.lastFrameMatricesBuffer.count, THREADGROUPCOUNT);
