@@ -59,7 +59,6 @@ namespace GPUPipeline.Culling
             Matrix4x4 rtProj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
             Matrix4x4 lastVP = rtProj * view;
             buffers.cullingShader.SetFloat(ShaderIDs._CurrentTime, Time.time * 5);
-            Shader.SetGlobalMatrix(ShaderIDs.LAST_VP_MATRIX, lastVP);
             PipelineSystem.SetLastFrameMatrix(ref buffers, ref lastVP);
             PipelineSystem.SetCullingBuffer(ref buffers);
             view = Camera.current.worldToCameraMatrix;
