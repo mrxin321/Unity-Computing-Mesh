@@ -6,6 +6,10 @@ public abstract class PipeLine : MonoBehaviour {
     public abstract void OnPreRenderEvent();
     [System.NonSerialized]
     public int currentIndex;
+    public static Matrix4x4 projMatrix;
+    public static Matrix4x4 rtProjMatrix;
+    public static Matrix4x4 lastVPMatrix;
+    public static Matrix4x4 viewMatrix;
 
     protected virtual void OnEnable()
     {

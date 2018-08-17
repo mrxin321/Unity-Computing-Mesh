@@ -8,11 +8,10 @@ namespace GPUPipeline.Culling
 {
     public class GPUCullingTest : PipeLine
     {
-        public Transform[] transforms;
+        public MeshFilter[] transforms;
         public CullingBuffers buffers;
         public ProceduralInstance procedural;
         private Camera currentCamera;
-        private Matrix4x4 view;
         public bool useMotionVector;
         private Function<CullingBuffers, ProceduralInstance> onPreRenderAction;
 
@@ -20,7 +19,7 @@ namespace GPUPipeline.Culling
         {
             currentCamera = GetComponent<Camera>();
             currentCamera.depthTextureMode |= DepthTextureMode.MotionVectors;
-            PipelineSystem.InitBuffers(ref buffers, transforms, transforms[0].GetComponent<MeshFilter>().sharedMesh);
+            PipelineSystem.InitBuffers(ref buffers, transforms);
             PipelineSystem.InitProceduralInstance(ref procedural);
         }
 
@@ -36,9 +35,7 @@ namespace GPUPipeline.Culling
             else
             {
                 onPreRenderAction = PipelineSystem.DrawNoMotionVectors;
-
             }
-            
         }
 
         protected override void OnDisable()
@@ -55,14 +52,10 @@ namespace GPUPipeline.Culling
 
         public override void OnPreRenderEvent()
         {
-            Matrix4x4 proj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, false);
-            Matrix4x4 rtProj = GL.GetGPUProjectionMatrix(Camera.current.projectionMatrix, true);
-            Matrix4x4 lastVP = rtProj * view;
             buffers.cullingShader.SetFloat(ShaderIDs._CurrentTime, Time.time * 5);
-            PipelineSystem.SetLastFrameMatrix(ref buffers, ref lastVP);
+            PipelineSystem.SetLastFrameMatrix(ref buffers, ref lastVPMatrix);
             PipelineSystem.SetCullingBuffer(ref buffers);
-            view = Camera.current.worldToCameraMatrix;
-            PipelineSystem.RunCulling(ref view, ref proj, ref rtProj, ref buffers);
+            PipelineSystem.RunCulling(ref viewMatrix, ref projMatrix, ref rtProjMatrix, ref buffers);
             PipelineSystem.ClearBuffer(ref procedural);
             onPreRenderAction(ref buffers, ref procedural);
         }

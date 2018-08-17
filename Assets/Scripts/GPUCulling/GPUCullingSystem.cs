@@ -11,7 +11,7 @@ namespace GPUPipeline.Culling
         const int INTSIZE = 4;
         const int THREADGROUPCOUNT = 128;
         const int MATRIXSIZE = 64;
-        const int TRANSFORMSIZE = 132;
+        const int meshesIZE = 132;
         #endregion
         #region STATIC_FUNCTION
         public static uint[] currentDrawSize = new uint[] { 0 };
@@ -115,23 +115,23 @@ namespace GPUPipeline.Culling
             procedural.motionVectorsCommandBuffer.SetRenderTarget(BuiltinRenderTextureType.MotionVectors, BuiltinRenderTextureType.CameraTarget);
         }
 
-        public static void InitBuffers(ref CullingBuffers buffers, Transform[] transforms, Mesh mesh)
+        public static void InitBuffers(ref CullingBuffers buffers, MeshFilter[] meshes)
         {
             buffers.sizeBuffer = new ComputeBuffer(1, INTSIZE);
-            buffers.allBoundBuffer = new ComputeBuffer(transforms.Length, Bounds.SIZE);
-            buffers.resultBuffer = new ComputeBuffer(transforms.Length, TRANSFORMSIZE);
+            buffers.allBoundBuffer = new ComputeBuffer(meshes.Length, Bounds.SIZE);
+            buffers.resultBuffer = new ComputeBuffer(meshes.Length, meshesIZE);
             buffers.csmainKernel = buffers.cullingShader.FindKernel("CSMain");
             buffers.lastMatricesKernel = buffers.cullingShader.FindKernel("GetLast");
-            buffers.lastFrameMatricesBuffer = new ComputeBuffer(transforms.Length, MATRIXSIZE);
-            buffers.count = transforms.Length;
-            Bounds[] allBounds = new Bounds[transforms.Length];
+            buffers.lastFrameMatricesBuffer = new ComputeBuffer(meshes.Length, MATRIXSIZE);
+            buffers.count = meshes.Length;
+            Bounds[] allBounds = new Bounds[meshes.Length];
             for (int i = 0; i < allBounds.Length; ++i)
             {
-                allBounds[i].extent = Vector3.one * 0.5f;
-                allBounds[i].localToWorldMatrix = transforms[i].localToWorldMatrix;
+                allBounds[i].extent = meshes[i].sharedMesh.bounds.extents;
+                allBounds[i].localToWorldMatrix = meshes[i].transform.localToWorldMatrix;
             }
             buffers.allBoundBuffer.SetData(allBounds);
-
+            Mesh mesh = meshes[0].sharedMesh;
             Vector3[] allVertex = mesh.vertices;
             int[] allIndices = mesh.triangles;
             Vector2[] allUVs = mesh.uv;
