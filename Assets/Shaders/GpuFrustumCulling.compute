@@ -9,7 +9,6 @@ struct Bounds{
 struct Transform{
     float4x4 ObjectToWorld;
     float4x4 MVP;
-    uint index;
 };
 inline float PlaneTest(float4 plane, Bounds bound){
     float3 right = float3(bound.ObjectToWorld._m00, bound.ObjectToWorld._m10, bound.ObjectToWorld._m20);
@@ -50,12 +49,11 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         Transform trans;
         trans.ObjectToWorld = ObjectToWorld;
         trans.MVP = mul(_VPMatrix, ObjectToWorld);
-        trans.index = id.x;
         Transforms[currentIndex] = trans;
     }
 }
 RWStructuredBuffer<float4x4> lastFrameMatrices;
-float _CurrentTime;
+
 float4x4 LAST_VP_MATRIX;
 [numthreads(128, 1, 1)]
 void GetLast(uint3 id : SV_DispatchThreadID)
@@ -64,9 +62,6 @@ void GetLast(uint3 id : SV_DispatchThreadID)
     {
         return;
     }
-    float4x4 objectToWorld =  allBounds[id.x].ObjectToWorld;
+    float4x4 objectToWorld =  Transforms[id.x].ObjectToWorld;
     lastFrameMatrices[id.x] = mul(LAST_VP_MATRIX, objectToWorld);
-    //TODO
-    objectToWorld._m13 += (sin(_CurrentTime + id.x * 0.05) + cos(_CurrentTime * 0.618 + id.x * 0.06)) * 0.5;
-    allBounds[id.x].ObjectToWorld = objectToWorld;
 }

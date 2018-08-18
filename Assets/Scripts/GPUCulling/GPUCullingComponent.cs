@@ -43,14 +43,10 @@ namespace GPUPipeline.Culling
         [System.NonSerialized]
         public int count;
         public ComputeBuffer vertexBuffer;
+        [System.NonSerialized]
+        public int currentCullingResult;
     }
-    [System.Serializable]
-    public struct ProceduralInstance
-    {
-        public Material proceduralMaterial;
-        public CommandBuffer geometryCommandBuffer;
-        public CommandBuffer motionVectorsCommandBuffer;
-    }
+
     public struct Point
     {
         public Vector3 vertex;  //12

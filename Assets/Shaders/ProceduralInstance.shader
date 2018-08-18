@@ -49,7 +49,6 @@ struct Point{
 struct Transform{ 
   float4x4 ObjectToWorld;
   float4x4 MVP;
-  uint index;
 };
 
 StructuredBuffer<Point> VertexBuffer;
@@ -201,7 +200,7 @@ CGPROGRAM
 // compile directives
 #pragma vertex vert
 #pragma fragment frag
-// vertex shader
+
 struct v2f_motionVector{
   float4 pos : SV_POSITION;
   float4 lastPos : TEXCOORD0;
@@ -213,7 +212,7 @@ v2f_motionVector vert (uint vertexID : SV_VertexID, uint instanceID : SV_Instanc
   float4 vertex = float4(VertexBuffer[vertexID].vertex, 1);
   o.pos = mul(curt.MVP, vertex);
   o.currentPos = o.pos;
-  o.lastPos = mul(lastFrameMatrices[curt.index], vertex);
+  o.lastPos = mul(lastFrameMatrices[instanceID], vertex);
   return o;
 }
 
@@ -228,7 +227,6 @@ float2 frag (v2f_motionVector i) : SV_Target {
 }
 ENDCG
   }
-
 
 }
 CustomEditor "SpecularShaderEditor"
